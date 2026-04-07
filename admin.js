@@ -10,9 +10,40 @@ let inventory = JSON.parse(localStorage.getItem('chamaInventory')) || [
   { id: 3, name: 'Carregador Turbo 35W', price: 249.00, stock: 0, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/HQ122?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1654031027103' }
 ];
 
+// Carrega o histórico de vendas
+let sales = JSON.parse(localStorage.getItem('chamaSales')) || [];
+
 // Função para salvar no localStorage
 function saveInventory() {
   localStorage.setItem('chamaInventory', JSON.stringify(inventory));
+}
+function saveSales() {
+  localStorage.setItem('chamaSales', JSON.stringify(sales));
+}
+
+// Função para atualizar os números de estatísticas financeiras
+function renderDashboardStats() {
+  const statVendasHoje = document.getElementById('stat-vendas-hoje');
+  const statLucroMensal = document.getElementById('stat-lucro-mensal');
+  const statLucroAnual = document.getElementById('stat-lucro-anual');
+  if (!statVendasHoje) return;
+
+  const today = new Date().toLocaleDateString('pt-BR');
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  let salesToday = 0, profitMonth = 0, profitYear = 0;
+
+  sales.forEach(sale => {
+    const saleDate = new Date(sale.timestamp);
+    if (sale.date === today) salesToday++;
+    if (saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear) profitMonth += sale.price;
+    if (saleDate.getFullYear() === currentYear) profitYear += sale.price;
+  });
+
+  statVendasHoje.innerText = salesToday;
+  statLucroMensal.innerText = `R$ ${profitMonth.toFixed(2).replace('.', ',')}`;
+  statLucroAnual.innerText = `R$ ${profitYear.toFixed(2).replace('.', ',')}`;
 }
 
 const inventoryTableBody = document.querySelector('#inventory-table tbody');
@@ -139,6 +170,7 @@ if (addProductForm) {
 
 // Carregar os dados ao iniciar a página
 renderInventory();
+renderDashboardStats();
 
 // Lógica para Renderizar Solicitações de Orçamento
 const requestsTableBody = document.querySelector('#requests-table tbody');
@@ -182,6 +214,183 @@ window.deleteRequest = function(id) {
 };
 
 renderRequests();
+
+// --- Lógica de Venda e Extrato Financeiro ---
+const btnNewSale = document.getElementById('btn-new-sale');
+const saleModal = document.getElementById('sale-modal');
+const closeSaleModal = document.getElementById('close-sale-modal');
+const saleForm = document.getElementById('sale-form');
+const saleProductId = document.getElementById('sale-product-id');
+
+// Abrir modal de venda e carregar produtos em estoque
+if (btnNewSale) {
+  btnNewSale.addEventListener('click', () => {
+    saleProductId.innerHTML = '<option value="">-- Selecione o produto --</option>';
+    inventory.forEach(item => {
+      if (item.stock > 0) {
+        saleProductId.innerHTML += `<option value="${item.id}">${item.name} - R$ ${item.price.toFixed(2).replace('.',',')}</option>`;
+      }
+    });
+    saleModal.style.display = 'flex';
+  });
+}
+if (closeSaleModal) closeSaleModal.addEventListener('click', () => saleModal.style.display = 'none');
+
+// Confirmar Venda
+if (saleForm) {
+  saleForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const product = inventory.find(p => p.id === parseInt(saleProductId.value));
+
+    if (product && product.stock > 0) {
+      product.stock--; // Subtrai do estoque
+      saveInventory();
+
+      const now = new Date();
+      const newSale = {
+        id: Date.now(),
+        productId: product.id,
+        productName: product.name,
+        price: product.price,
+        date: now.toLocaleDateString('pt-BR'),
+        time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: now.getTime()
+      };
+
+      sales.push(newSale); // Registra a venda
+      saveSales();
+
+      renderInventory();
+      renderDashboardStats();
+      saleModal.style.display = 'none';
+    }
+  });
+}
+
+// Extrato Financeiro
+const btnViewFinance = document.getElementById('btn-view-finance');
+const financeModal = document.getElementById('finance-modal');
+const closeFinanceModal = document.getElementById('close-finance-modal');
+const financeMonthInput = document.getElementById('finance-month');
+const financeTableBody = document.querySelector('#finance-table tbody');
+const financeTotal = document.getElementById('finance-total');
+
+if (btnViewFinance) {
+  btnViewFinance.addEventListener('click', () => {
+    const now = new Date();
+    financeMonthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    renderFinanceTable();
+    financeModal.style.display = 'flex';
+  });
+}
+if (closeFinanceModal) closeFinanceModal.addEventListener('click', () => financeModal.style.display = 'none');
+if (financeMonthInput) financeMonthInput.addEventListener('change', renderFinanceTable);
+
+function renderFinanceTable() {
+  if (!financeMonthInput.value) return;
+  const [year, month] = financeMonthInput.value.split('-');
+  let total = 0;
+  financeTableBody.innerHTML = '';
+  const filteredSales = sales.filter(s => { const d = new Date(s.timestamp); return d.getFullYear() === parseInt(year) && (d.getMonth() + 1) === parseInt(month); });
+  if (filteredSales.length === 0) { financeTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6e6e73; padding: 2rem;">Nenhuma venda neste mês.</td></tr>'; } 
+  else { filteredSales.forEach(s => { total += s.price; financeTableBody.innerHTML += `<tr><td style="white-space: nowrap;">${s.date} ${s.time}</td><td>${s.productName}</td><td style="white-space: nowrap;">R$ ${s.price.toFixed(2).replace('.', ',')}</td><td><button class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="openSaleAction(${s.id})">Alterar</button></td></tr>`; }); }
+  financeTotal.innerText = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+}
+
+// --- Lógica de Edição e Exclusão de Vendas (Segurança) ---
+const saleActionModal = document.getElementById('sale-action-modal');
+const closeActionModal = document.getElementById('close-action-modal');
+const btnActionEdit = document.getElementById('btn-action-edit');
+const btnActionDelete = document.getElementById('btn-action-delete');
+
+const saleEditModal = document.getElementById('sale-edit-modal');
+const closeSaleEditModal = document.getElementById('close-sale-edit-modal');
+const saleEditForm = document.getElementById('sale-edit-form');
+
+let currentSaleActionId = null;
+const ADMIN_PASS = '19554976'; // A mesma senha utilizada no login
+
+window.openSaleAction = function(id) {
+  currentSaleActionId = id;
+  saleActionModal.style.display = 'flex';
+};
+
+if (closeActionModal) closeActionModal.addEventListener('click', () => saleActionModal.style.display = 'none');
+if (closeSaleEditModal) closeSaleEditModal.addEventListener('click', () => saleEditModal.style.display = 'none');
+
+if (btnActionDelete) {
+  btnActionDelete.addEventListener('click', () => {
+    saleActionModal.style.display = 'none';
+    const pass = prompt('AÇÃO SENSÍVEL: Digite a senha do Admin para confirmar a exclusão:');
+    if (pass === ADMIN_PASS) {
+      sales = sales.filter(s => s.id !== currentSaleActionId);
+      saveSales();
+      renderFinanceTable();
+      renderDashboardStats();
+      alert('A venda foi excluída e os saldos foram recalculados!');
+    } else if (pass !== null) {
+      alert('Senha incorreta! Operação cancelada.');
+    }
+  });
+}
+
+if (btnActionEdit) {
+  btnActionEdit.addEventListener('click', () => {
+    saleActionModal.style.display = 'none';
+    const pass = prompt('AÇÃO SENSÍVEL: Digite a senha do Admin para liberar a edição:');
+    if (pass === ADMIN_PASS) {
+      const sale = sales.find(s => s.id === currentSaleActionId);
+      if (sale) {
+        document.getElementById('edit-sale-id').value = sale.id;
+        
+        const editProductSelect = document.getElementById('edit-sale-product');
+        editProductSelect.innerHTML = '';
+        let hasCurrent = false;
+        inventory.forEach(item => {
+          if (item.name === sale.productName) hasCurrent = true;
+          editProductSelect.innerHTML += `<option value="${item.name}">${item.name}</option>`;
+        });
+        if (!hasCurrent) {
+          editProductSelect.innerHTML += `<option value="${sale.productName}">${sale.productName}</option>`;
+        }
+        editProductSelect.value = sale.productName;
+
+        document.getElementById('edit-sale-price').value = sale.price;
+        document.getElementById('edit-sale-date').value = sale.date;
+        document.getElementById('edit-sale-time').value = sale.time;
+        saleEditModal.style.display = 'flex';
+      }
+    } else if (pass !== null) {
+      alert('Senha incorreta! Operação cancelada.');
+    }
+  });
+}
+
+// Atualiza o preço automaticamente se o Admin trocar o aparelho na lista de edição
+const editProductSelect = document.getElementById('edit-sale-product');
+if (editProductSelect) {
+  editProductSelect.addEventListener('change', (e) => {
+    const selectedProduct = inventory.find(p => p.name === e.target.value);
+    if (selectedProduct) document.getElementById('edit-sale-price').value = selectedProduct.price;
+  });
+}
+
+if (saleEditForm) {
+  saleEditForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const sale = sales.find(s => s.id === parseInt(document.getElementById('edit-sale-id').value));
+    if (sale) {
+      sale.productName = document.getElementById('edit-sale-product').value;
+      sale.price = parseFloat(document.getElementById('edit-sale-price').value);
+      sale.date = document.getElementById('edit-sale-date').value;
+      sale.time = document.getElementById('edit-sale-time').value;
+      saveSales();
+      renderFinanceTable();
+      renderDashboardStats();
+      saleEditModal.style.display = 'none';
+    }
+  });
+}
 
 // Lógica de Logout
 const logoutBtn = document.getElementById('logout-btn');
