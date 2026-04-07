@@ -46,6 +46,11 @@ async function saveCloudData() {
 }
 
 async function initAdminApp() {
+  // Aviso de Nuvem desativado temporariamente
+  // if (CLOUD_BIN_ID === 'SEU_BIN_ID_AQUI' || CLOUD_API_KEY === 'SUA_API_KEY_AQUI') {
+  //   alert("⚠️ ATENÇÃO ADMIN: Você esqueceu de colocar as chaves do JSONBin.io no código!\n\nO site está rodando no modo 'offline' e salvando apenas neste notebook.");
+  // }
+
   const data = await loadCloudData();
   inventory = data.inventory || [
     { id: 1, name: 'iPhone 15 Pro', price: 7299.00, stock: 5, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-bluetitanium?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1692846360609' },
