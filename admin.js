@@ -3,22 +3,61 @@ if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
   window.location.href = 'index.html';
 }
 
-// Carrega o estoque salvo ou inicia com os produtos padrão
-let inventory = JSON.parse(localStorage.getItem('chamaInventory')) || [
-  { id: 1, name: 'iPhone 15 Pro', price: 7299.00, stock: 5, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-bluetitanium?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1692846360609' },
-  { id: 2, name: 'AirPods Pro', price: 1899.00, stock: 12, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1694014871985' },
-  { id: 3, name: 'Carregador Turbo 35W', price: 249.00, stock: 0, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/HQ122?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1654031027103' }
-];
+// --- CONFIGURAÇÃO DO BANCO DE DADOS (JSONBin.io) ---
+const CLOUD_BIN_ID = 'SEU_BIN_ID_AQUI'; // Cole o seu Bin ID aqui
+const CLOUD_API_KEY = 'SUA_API_KEY_AQUI'; // Cole a sua API Key aqui
 
-// Carrega o histórico de vendas
-let sales = JSON.parse(localStorage.getItem('chamaSales')) || [];
+let inventory = [];
+let sales = [];
+let requests = [];
 
-// Função para salvar no localStorage
-function saveInventory() {
-  localStorage.setItem('chamaInventory', JSON.stringify(inventory));
+async function loadCloudData() {
+  try {
+    const response = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': CLOUD_API_KEY }
+    });
+    if (!response.ok) throw new Error('Erro ao carregar dados');
+    const json = await response.json();
+    return json.record;
+  } catch (error) {
+    console.error('Usando dados locais (Nuvem não configurada):', error);
+    return {
+      inventory: JSON.parse(localStorage.getItem('chamaInventory')) || null,
+      sales: JSON.parse(localStorage.getItem('chamaSales')) || [],
+      requests: JSON.parse(localStorage.getItem('chamaRequests')) || []
+    };
+  }
 }
-function saveSales() {
+
+async function saveCloudData() {
+  const data = { inventory, sales, requests };
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CLOUD_API_KEY },
+      body: JSON.stringify(data)
+    });
+  } catch (error) {
+    console.error('Erro ao salvar na nuvem', error);
+  }
+  localStorage.setItem('chamaInventory', JSON.stringify(inventory));
   localStorage.setItem('chamaSales', JSON.stringify(sales));
+  localStorage.setItem('chamaRequests', JSON.stringify(requests));
+}
+
+async function initAdminApp() {
+  const data = await loadCloudData();
+  inventory = data.inventory || [
+    { id: 1, name: 'iPhone 15 Pro', price: 7299.00, stock: 5, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-bluetitanium?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1692846360609' },
+    { id: 2, name: 'AirPods Pro', price: 1899.00, stock: 12, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1694014871985' },
+    { id: 3, name: 'Carregador Turbo 35W', price: 249.00, stock: 0, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/HQ122?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1654031027103' }
+  ];
+  sales = data.sales || [];
+  requests = data.requests || [];
+  
+  renderInventory();
+  renderDashboardStats();
+  renderRequests();
 }
 
 // Função para atualizar os números de estatísticas financeiras
@@ -89,7 +128,7 @@ window.updateStock = function(id, change) {
   if (product) {
     product.stock += change;
     if (product.stock < 0) product.stock = 0; // Impede que o estoque fique negativo
-    saveInventory();
+    saveCloudData();
     renderInventory();
   }
 };
@@ -126,7 +165,7 @@ function resetFormState() {
 window.deleteProduct = function(id) {
   if (confirm('Tem certeza que deseja excluir este produto da loja?')) {
     inventory = inventory.filter(p => p.id !== id);
-    saveInventory();
+    saveCloudData();
     renderInventory();
     if (editingProductId === id) {
       resetFormState();
@@ -162,15 +201,11 @@ if (addProductForm) {
       alert('Produto adicionado ao estoque com sucesso!');
     }
 
-    saveInventory();
+    saveCloudData();
     renderInventory();
     resetFormState();
   });
 }
-
-// Carregar os dados ao iniciar a página
-renderInventory();
-renderDashboardStats();
 
 // Lógica para Renderizar Solicitações de Orçamento
 const requestsTableBody = document.querySelector('#requests-table tbody');
@@ -178,7 +213,6 @@ const requestsTableBody = document.querySelector('#requests-table tbody');
 function renderRequests() {
   if (!requestsTableBody) return;
   requestsTableBody.innerHTML = '';
-  const requests = JSON.parse(localStorage.getItem('chamaRequests')) || [];
 
   if (requests.length === 0) {
     requestsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6e6e73;">Nenhuma solicitação no momento.</td></tr>';
@@ -207,13 +241,10 @@ function renderRequests() {
 }
 
 window.deleteRequest = function(id) {
-  let requests = JSON.parse(localStorage.getItem('chamaRequests')) || [];
   requests = requests.filter(req => req.id !== id);
-  localStorage.setItem('chamaRequests', JSON.stringify(requests));
+  saveCloudData();
   renderRequests();
 };
-
-renderRequests();
 
 // --- Lógica de Venda e Extrato Financeiro ---
 const btnNewSale = document.getElementById('btn-new-sale');
@@ -244,7 +275,6 @@ if (saleForm) {
 
     if (product && product.stock > 0) {
       product.stock--; // Subtrai do estoque
-      saveInventory();
 
       const now = new Date();
       const newSale = {
@@ -258,7 +288,7 @@ if (saleForm) {
       };
 
       sales.push(newSale); // Registra a venda
-      saveSales();
+      saveCloudData();
 
       renderInventory();
       renderDashboardStats();
@@ -324,7 +354,7 @@ if (btnActionDelete) {
     const pass = prompt('AÇÃO SENSÍVEL: Digite a senha do Admin para confirmar a exclusão:');
     if (pass === ADMIN_PASS) {
       sales = sales.filter(s => s.id !== currentSaleActionId);
-      saveSales();
+      saveCloudData();
       renderFinanceTable();
       renderDashboardStats();
       alert('A venda foi excluída e os saldos foram recalculados!');
@@ -384,7 +414,7 @@ if (saleEditForm) {
       sale.price = parseFloat(document.getElementById('edit-sale-price').value);
       sale.date = document.getElementById('edit-sale-date').value;
       sale.time = document.getElementById('edit-sale-time').value;
-      saveSales();
+      saveCloudData();
       renderFinanceTable();
       renderDashboardStats();
       saleEditModal.style.display = 'none';
@@ -401,3 +431,6 @@ if (logoutBtn) {
     window.location.href = 'index.html'; // Redireciona para a loja
   });
 }
+
+// Inicializa o painel carregando os dados da nuvem
+initAdminApp();
