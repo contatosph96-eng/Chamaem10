@@ -19,19 +19,25 @@
 
   <main class="admin-main">
     <div class="dashboard-section">
-      <h2>Resumo Financeiro</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0;">Financeiro</h2>
+        <div style="display: flex; gap: 1rem;">
+          <button id="btn-view-finance" class="btn-secondary">Ver Extrato</button>
+          <button id="btn-new-sale" class="btn-primary">Registrar Venda</button>
+        </div>
+      </div>
       <div class="stats-grid">
         <div class="stat-card">
           <h3>Vendas Hoje</h3>
-          <p class="stat-value">12</p>
+          <p class="stat-value" id="stat-vendas-hoje">0</p>
         </div>
         <div class="stat-card">
           <h3>Lucro Mensal</h3>
-          <p class="stat-value">R$ 4.500,00</p>
+          <p class="stat-value" id="stat-lucro-mensal">R$ 0,00</p>
         </div>
         <div class="stat-card">
           <h3>Lucro Anual</h3>
-          <p class="stat-value">R$ 54.000,00</p>
+          <p class="stat-value" id="stat-lucro-anual">R$ 0,00</p>
         </div>
       </div>
     </div>
@@ -102,6 +108,90 @@
             <!-- O conteúdo será injetado dinamicamente via JS -->
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Modal Registrar Venda -->
+    <div id="sale-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="close-sale-modal" class="close-btn">&times;</button>
+        <h3>Registrar Venda</h3>
+        <form id="sale-form">
+          <label style="display: block; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Selecione o Aparelho / Produto</span>
+            <select id="sale-product-id" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 1rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <button type="submit" class="btn-primary" style="width: 100%;">Finalizar Venda</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Extrato Financeiro -->
+    <div id="finance-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 600px;">
+        <button id="close-finance-modal" class="close-btn">&times;</button>
+        <h3 style="margin-bottom: 1.5rem;">Extrato Financeiro</h3>
+        <label style="display: block; margin-bottom: 1.5rem;">
+          <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Mês de Referência</span>
+          <input type="month" id="finance-month" style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+        </label>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto; border: 1px solid rgba(17, 17, 20, 0.08); border-radius: 1rem;">
+          <table class="data-table" id="finance-table" style="margin: 0;">
+            <thead style="background: #f5f5f7;">
+              <tr>
+                <th>Data/Hora</th>
+                <th>Produto</th>
+                <th>Valor</th>
+                <th style="width: 80px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="margin-top: 1.5rem; font-size: 1.3rem; font-weight: 700; text-align: right; color: #111114;" id="finance-total">Total: R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- Modal de Ação da Venda (Editar ou Excluir) -->
+    <div id="sale-action-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 340px; text-align: center;">
+        <button id="close-action-modal" class="close-btn">&times;</button>
+        <h3 style="margin-bottom: 1rem;">Alterar Venda</h3>
+        <p style="color: #6e6e73; margin-bottom: 1.5rem; font-size: 0.95rem;">O que você deseja fazer com este registro?</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button id="btn-action-edit" class="btn-secondary" style="flex: 1;">Editar</button>
+          <button id="btn-action-delete" class="btn-primary" style="flex: 1; background: #c92a2a;">Excluir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Editar Venda -->
+    <div id="sale-edit-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="close-sale-edit-modal" class="close-btn">&times;</button>
+        <h3 style="margin-bottom: 1.5rem;">Editar Venda</h3>
+        <form id="sale-edit-form">
+          <input type="hidden" id="edit-sale-id">
+          <label style="display: block; margin-bottom: 1rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Aparelho / Produto</span>
+            <select id="edit-sale-product" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <label style="display: block; margin-bottom: 1rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Valor (R$)</span>
+            <input type="number" id="edit-sale-price" step="0.01" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <label style="display: block;">
+              <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Data</span>
+              <input type="text" id="edit-sale-date" placeholder="DD/MM/AAAA" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+            </label>
+            <label style="display: block;">
+              <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Horário</span>
+              <input type="text" id="edit-sale-time" placeholder="HH:MM" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+            </label>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%;">Salvar Alterações</button>
+        </form>
       </div>
     </div>
   </main>
