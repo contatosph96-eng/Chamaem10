@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - ChamaEm10</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <div class="brand">ChamaEm10 Admin</div>
+      <nav class="nav-links">
+        <a href="index.html">Ver Loja</a>
+        <a href="#" id="logout-btn" class="btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #c92a2a;">SAIR</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="dashboard-section">
+      <h2>Resumo Financeiro</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Vendas Hoje</h3>
+          <p class="stat-value">12</p>
+        </div>
+        <div class="stat-card">
+          <h3>Lucro Mensal</h3>
+          <p class="stat-value">R$ 4.500,00</p>
+        </div>
+        <div class="stat-card">
+          <h3>Lucro Anual</h3>
+          <p class="stat-value">R$ 54.000,00</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Formulário de adição de produtos -->
+      <div class="add-product-section contact-form-card">
+        <h3 id="form-title">Adicionar Novo Produto</h3>
+        <form id="add-product-form">
+          <label>
+            Nome do Produto
+            <input type="text" id="prod-name" required placeholder="Ex: iPhone 13">
+          </label>
+          <label>
+            Preço (R$)
+            <input type="number" id="prod-price" step="0.01" required placeholder="Ex: 3500.00">
+          </label>
+          <label>
+            Quantidade em Estoque
+            <input type="number" id="prod-stock" required placeholder="Ex: 10">
+          </label>
+          <label>
+            URL da Imagem
+            <input type="url" id="prod-image" placeholder="Ex: https://site.com/foto.jpg">
+          </label>
+          <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+            <button type="submit" class="btn-primary" id="submit-btn">Salvar Produto</button>
+            <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tabela de inventário -->
+      <div class="inventory-section contact-form-card">
+        <h3>Controle de Estoque</h3>
+        <div class="table-responsive">
+          <table class="data-table" id="inventory-table">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- O conteúdo será injetado dinamicamente via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="requests-section contact-form-card" style="margin-top: 2rem;">
+      <h3>Solicitações de Orçamento / Contato</h3>
+      <div class="table-responsive">
+        <table class="data-table" id="requests-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Nome</th>
+              <th>Contato</th>
+              <th>Mensagem</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- O conteúdo será injetado dinamicamente via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
