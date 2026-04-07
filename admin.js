@@ -42,7 +42,10 @@ function renderInventory() {
       <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
         <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="updateStock(${item.id}, 1)">+1</button>
         <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="updateStock(${item.id}, -1)">-1</button>
-        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="editProduct(${item.id})">Editar</button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="editProduct(${item.id})">Editar</button>
+          <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: #c92a2a;" onclick="deleteProduct(${item.id})">Excluir</button>
+        </div>
       </td>
     `;
     inventoryTableBody.appendChild(tr);
@@ -87,6 +90,18 @@ function resetFormState() {
   if(submitBtn) submitBtn.innerText = 'Salvar Produto';
   if(cancelEditBtn) cancelEditBtn.style.display = 'none';
 }
+
+// Função para excluir um produto
+window.deleteProduct = function(id) {
+  if (confirm('Tem certeza que deseja excluir este produto da loja?')) {
+    inventory = inventory.filter(p => p.id !== id);
+    saveInventory();
+    renderInventory();
+    if (editingProductId === id) {
+      resetFormState();
+    }
+  }
+};
 
 if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetFormState);
 
