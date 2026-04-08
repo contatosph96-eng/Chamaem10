@@ -17,11 +17,12 @@ async function loadCloudData() {
     if (!response.ok) throw new Error('Erro ao carregar dados');
     return await response.json();
   } catch (error) {
-    console.error('Usando dados locais (API não acessível):', error);
+    alert('⚠️ ERRO DE CONEXÃO: Não foi possível carregar os dados da nuvem. Verifique o seu PythonAnywhere.');
+    console.error('Erro de conexão com a API:', error);
     return {
-      inventory: JSON.parse(localStorage.getItem('chamaInventory')) || null,
-      sales: JSON.parse(localStorage.getItem('chamaSales')) || [],
-      requests: JSON.parse(localStorage.getItem('chamaRequests')) || []
+      inventory: null,
+      sales: [],
+      requests: []
     };
   }
 }
@@ -29,13 +30,15 @@ async function loadCloudData() {
 async function saveCloudData() {
   const data = { inventory, sales, requests };
   try {
-    await fetch(`${API_URL}/save/${STORE_ID}`, {
+    const response = await fetch(`${API_URL}/save/${STORE_ID}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    if (!response.ok) throw new Error('Erro ao salvar na API');
     console.log("Dados sincronizados com NeguePython!");
   } catch (error) {
+    alert('⚠️ ERRO AO SALVAR: A nuvem não recebeu os dados. Aperte F12 para ver o erro no console.');
     console.error('Erro ao salvar na API:', error);
   }
 }
