@@ -3,9 +3,9 @@ if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
   window.location.href = 'index.html';
 }
 
-// --- CONFIGURAÇÃO DO BANCO DE DADOS (JSONBin.io) ---
-const CLOUD_BIN_ID = 'SEU_BIN_ID_AQUI'; // Cole o seu Bin ID aqui
-const CLOUD_API_KEY = 'SUA_API_KEY_AQUI'; // Cole a sua API Key aqui
+// --- CONFIGURAÇÃO DO BANCO DE DADOS (Python API) ---
+const API_URL = "https://NeguePython.pythonanywhere.com";
+const STORE_ID = "chamaem10"; // Identificador fixo para sua loja
 
 let inventory = [];
 let sales = [];
@@ -13,14 +13,11 @@ let requests = [];
 
 async function loadCloudData() {
   try {
-    const response = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest`, {
-      headers: { 'X-Master-Key': CLOUD_API_KEY }
-    });
+    const response = await fetch(`${API_URL}/load/${STORE_ID}`);
     if (!response.ok) throw new Error('Erro ao carregar dados');
-    const json = await response.json();
-    return json.record;
+    return await response.json();
   } catch (error) {
-    console.error('Usando dados locais (Nuvem não configurada):', error);
+    console.error('Usando dados locais (API não acessível):', error);
     return {
       inventory: JSON.parse(localStorage.getItem('chamaInventory')) || null,
       sales: JSON.parse(localStorage.getItem('chamaSales')) || [],
@@ -32,25 +29,18 @@ async function loadCloudData() {
 async function saveCloudData() {
   const data = { inventory, sales, requests };
   try {
-    await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CLOUD_API_KEY },
+    await fetch(`${API_URL}/save/${STORE_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    console.log("Dados sincronizados com NeguePython!");
   } catch (error) {
-    console.error('Erro ao salvar na nuvem', error);
+    console.error('Erro ao salvar na API:', error);
   }
-  localStorage.setItem('chamaInventory', JSON.stringify(inventory));
-  localStorage.setItem('chamaSales', JSON.stringify(sales));
-  localStorage.setItem('chamaRequests', JSON.stringify(requests));
 }
 
 async function initAdminApp() {
-  // Aviso de Nuvem desativado temporariamente
-  // if (CLOUD_BIN_ID === 'SEU_BIN_ID_AQUI' || CLOUD_API_KEY === 'SUA_API_KEY_AQUI') {
-  //   alert("⚠️ ATENÇÃO ADMIN: Você esqueceu de colocar as chaves do JSONBin.io no código!\n\nO site está rodando no modo 'offline' e salvando apenas neste notebook.");
-  // }
-
   const data = await loadCloudData();
   inventory = data.inventory || [
     { id: 1, name: 'iPhone 15 Pro', price: 7299.00, stock: 5, image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-bluetitanium?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1692846360609' },
