@@ -37,7 +37,7 @@
         <div class="device-card">
           <span>Smartphone</span>
           <h2>Iphone Style</h2>
-          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_996567-MLA95238305253_102025-F.webp" alt="iphoneteste" id="iphoneteste"/>
+          <img src="https://www.pngall.com/wp-content/uploads/20/iPhone-17-Pro-Max-Artwork-PNG.png" alt="iphoneteste" id="iphoneteste"/>
           <p>Design premium com acabamento elegante e performance alta.</p>
           <div class="price">A partir de <strong>R$ 1.700,00</strong></div>
         </div>
@@ -119,8 +119,31 @@
       <div class="modal-content">
         <button id="close-modal" class="close-btn">&times;</button>
         <h3>Resumo do Pedido</h3>
-        <div class="order-summary" id="order-summary">
-          <!-- Detalhes preenchidos via JS -->
+        <div class="order-summary" id="order-summary" style="text-align: center;">
+          <img id="checkout-img" src="" alt="Produto" style="max-width: 100%; height: 180px; object-fit: contain; margin-bottom: 1rem; display: none; border-radius: 1rem;">
+          <h4 id="checkout-title" style="margin: 0 0 0.5rem; font-size: 1.2rem;"></h4>
+          <div id="checkout-price" style="font-size: 1.15rem; font-weight: 600; color: #111114; margin-bottom: 1rem;"></div>
+          
+          <div id="checkout-model-section" style="display: none; text-align: left; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.8rem; font-size: 0.95rem; font-weight: 600; color: #111114;">
+              Modelo - <span id="checkout-model-name-display" style="color: #6e6e73; font-weight: 400;"></span>
+            </span>
+            <div id="checkout-model-options" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+          </div>
+
+          <div id="checkout-storage-section" style="display: none; text-align: left; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.8rem; font-size: 0.95rem; font-weight: 600; color: #111114;">
+              Armazenamento - <span id="checkout-storage-name-display" style="color: #6e6e73; font-weight: 400;"></span>
+            </span>
+            <div id="checkout-storage-options" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+          </div>
+
+          <div id="checkout-color-section" style="display: none; text-align: left; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.8rem; font-size: 0.95rem; font-weight: 600; color: #111114;">
+              Cor - <span id="checkout-color-name-display" style="color: #6e6e73; font-weight: 400;"></span>
+            </span>
+            <div id="checkout-color-swatches" class="color-swatches"></div>
+          </div>
         </div>
         <form id="checkout-form">
           <input type="hidden" id="checkout-product-id">
