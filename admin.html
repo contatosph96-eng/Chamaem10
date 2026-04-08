@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - ChamaEm10</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <div class="brand">ChamaEm10 Admin</div>
+      <nav class="nav-links">
+        <a href="index.html">Ver Loja</a>
+        <button id="force-save-btn" class="btn-secondary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; cursor: pointer;">Salvar Dados</button>
+        <a href="#" id="logout-btn" class="btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #c92a2a;">SAIR</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="dashboard-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0;">Financeiro</h2>
+        <div style="display: flex; gap: 1rem;">
+          <button id="btn-view-finance" class="btn-secondary">Ver Extrato</button>
+          <button id="btn-new-sale" class="btn-primary">Registrar Venda</button>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Vendas Hoje</h3>
+          <p class="stat-value" id="stat-vendas-hoje">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Lucro Mensal</h3>
+          <p class="stat-value" id="stat-lucro-mensal">R$ 0,00</p>
+        </div>
+        <div class="stat-card">
+          <h3>Lucro Anual</h3>
+          <p class="stat-value" id="stat-lucro-anual">R$ 0,00</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Formulário de adição de produtos -->
+      <div class="add-product-section contact-form-card">
+        <h3 id="form-title">Adicionar Novo Produto</h3>
+        <form id="add-product-form">
+          <label>
+            Nome do Produto
+            <input type="text" id="prod-name" required placeholder="Ex: iPhone 13">
+          </label>
+          <label>
+            Preço (R$)
+            <input type="number" id="prod-price" step="0.01" required placeholder="Ex: 3500.00">
+          </label>
+          <label>
+            Quantidade em Estoque
+            <input type="number" id="prod-stock" required placeholder="Ex: 10">
+          </label>
+          <label>
+            URL da Imagem
+            <input type="url" id="prod-image" placeholder="Ex: https://site.com/foto.jpg">
+          </label>
+          <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+            <button type="submit" class="btn-primary" id="submit-btn">Salvar Produto</button>
+            <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tabela de inventário -->
+      <div class="inventory-section contact-form-card">
+        <h3>Controle de Estoque</h3>
+        <div class="table-responsive">
+          <table class="data-table" id="inventory-table">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- O conteúdo será injetado dinamicamente via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="requests-section contact-form-card" style="margin-top: 2rem;">
+      <h3>Solicitações de Orçamento / Contato</h3>
+      <div class="table-responsive">
+        <table class="data-table" id="requests-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Nome</th>
+              <th>Contato</th>
+              <th>Mensagem</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- O conteúdo será injetado dinamicamente via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal Registrar Venda -->
+    <div id="sale-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="close-sale-modal" class="close-btn">&times;</button>
+        <h3>Registrar Venda</h3>
+        <form id="sale-form">
+          <label style="display: block; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Selecione o Aparelho / Produto</span>
+            <select id="sale-product-id" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 1rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <button type="submit" class="btn-primary" style="width: 100%;">Finalizar Venda</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Extrato Financeiro -->
+    <div id="finance-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 600px;">
+        <button id="close-finance-modal" class="close-btn">&times;</button>
+        <h3 style="margin-bottom: 1.5rem;">Extrato Financeiro</h3>
+        <label style="display: block; margin-bottom: 1.5rem;">
+          <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Mês de Referência</span>
+          <input type="month" id="finance-month" style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+        </label>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto; border: 1px solid rgba(17, 17, 20, 0.08); border-radius: 1rem;">
+          <table class="data-table" id="finance-table" style="margin: 0;">
+            <thead style="background: #f5f5f7;">
+              <tr>
+                <th>Data/Hora</th>
+                <th>Produto</th>
+                <th>Valor</th>
+                <th style="width: 80px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="margin-top: 1.5rem; font-size: 1.3rem; font-weight: 700; text-align: right; color: #111114;" id="finance-total">Total: R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- Modal de Ação da Venda (Editar ou Excluir) -->
+    <div id="sale-action-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 340px; text-align: center;">
+        <button id="close-action-modal" class="close-btn">&times;</button>
+        <h3 style="margin-bottom: 1rem;">Alterar Venda</h3>
+        <p style="color: #6e6e73; margin-bottom: 1.5rem; font-size: 0.95rem;">O que você deseja fazer com este registro?</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button id="btn-action-edit" class="btn-secondary" style="flex: 1;">Editar</button>
+          <button id="btn-action-delete" class="btn-primary" style="flex: 1; background: #c92a2a;">Excluir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Editar Venda -->
+    <div id="sale-edit-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button id="close-sale-edit-modal" class="close-btn">&times;</button>
+        <h3 style="margin-bottom: 1.5rem;">Editar Venda</h3>
+        <form id="sale-edit-form">
+          <input type="hidden" id="edit-sale-id">
+          <label style="display: block; margin-bottom: 1rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Aparelho / Produto</span>
+            <select id="edit-sale-product" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <label style="display: block; margin-bottom: 1rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Valor (R$)</span>
+            <input type="number" id="edit-sale-price" step="0.01" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <label style="display: block;">
+              <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Data</span>
+              <input type="text" id="edit-sale-date" placeholder="DD/MM/AAAA" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+            </label>
+            <label style="display: block;">
+              <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Horário</span>
+              <input type="text" id="edit-sale-time" placeholder="HH:MM" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 0.8rem; background: #fff; font-size: 1rem;">
+            </label>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%;">Salvar Alterações</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
