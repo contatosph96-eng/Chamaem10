@@ -9,12 +9,14 @@
 <body>
   <header class="site-header">
     <div class="header-content">
-      <div class="brand">ChamaEm10 Admin</div>
+      <a href="#" class="brand">ChamaEm10 Admin</a>
       <nav class="nav-links">
         <a href="index.html">Ver Loja</a>
-        <button id="force-save-btn" class="btn-secondary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; cursor: pointer;">Salvar Dados</button>
-        <a href="#" id="logout-btn" class="btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background-color: #c92a2a;">SAIR</a>
       </nav>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <button id="force-save-btn" class="btn-secondary" style="cursor: pointer;">Salvar Dados</button>
+        <a href="#" id="logout-btn" class="btn-primary" style="background-color: #c92a2a;">Sair</a>
+      </div>
     </div>
   </header>
 
@@ -52,18 +54,13 @@
             Nome do Produto
             <input type="text" id="prod-name" required placeholder="Ex: iPhone 13">
           </label>
-          <label>
-            Preço (R$)
-            <input type="number" id="prod-price" step="0.01" required placeholder="Ex: 3500.00">
-          </label>
-          <label>
-            Quantidade em Estoque
-            <input type="number" id="prod-stock" required placeholder="Ex: 10">
-          </label>
-          <label>
-            URL da Imagem
-            <input type="url" id="prod-image" placeholder="Ex: https://site.com/foto.jpg">
-          </label>
+          <div id="variations-wrapper" style="margin-top: 1rem; border: 1px solid rgba(17,17,20,0.12); padding: 1rem; border-radius: 0.95rem; background: #fff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <span style="font-weight: 500; font-size: 0.95rem;">Variações (Modelos, Cores e Armazenamentos)</span>
+              <button type="button" class="btn-secondary" id="btn-add-model" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">+ Adicionar Modelo</button>
+            </div>
+            <div id="models-container" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+          </div>
           <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
             <button type="submit" class="btn-primary" id="submit-btn">Salvar Produto</button>
             <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display: none;">Cancelar</button>
@@ -121,6 +118,18 @@
           <label style="display: block; margin-top: 1.5rem; margin-bottom: 1.5rem;">
             <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Selecione o Aparelho / Produto</span>
             <select id="sale-product-id" required style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 1rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <label id="sale-model-wrapper" style="display: none; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Modelo</span>
+            <select id="sale-model" style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 1rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <label id="sale-color-wrapper" style="display: none; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cor</span>
+            <select id="sale-color" style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 1rem; background: #fff; font-size: 1rem;"></select>
+          </label>
+          <label id="sale-storage-wrapper" style="display: none; margin-bottom: 1.5rem;">
+            <span style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Armazenamento</span>
+            <select id="sale-storage" style="width: 100%; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.95rem; padding: 1rem; background: #fff; font-size: 1rem;"></select>
           </label>
           <button type="submit" class="btn-primary" style="width: 100%;">Finalizar Venda</button>
         </form>
