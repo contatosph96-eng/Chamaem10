@@ -14,10 +14,13 @@ let requests = [];
 async function loadCloudData() {
   try {
     const response = await fetch(`${API_URL}/load/${STORE_ID}`);
-    if (!response.ok) throw new Error('Erro ao carregar dados');
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Erro do Servidor ${response.status}:\n${errText}`);
+    }
     return await response.json();
   } catch (error) {
-    alert('⚠️ ERRO DE CONEXÃO: Não foi possível carregar os dados da nuvem. Verifique o seu PythonAnywhere.');
+    alert(`⚠️ ERRO DE CONEXÃO:\n${error.message}\n\nSe o erro for "Failed to fetch", é problema de CORS. Se for Erro 500, o PythonAnywhere está quebrado.`);
     console.error('Erro de conexão com a API:', error);
     return {
       inventory: null,
