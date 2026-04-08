@@ -59,6 +59,7 @@ async function initAdminApp() {
   renderInventory();
   renderDashboardStats();
   renderRequests();
+  addModelBlock(); // Inicia com um bloco de modelo
 }
 
 // Função para atualizar os números de estatísticas financeiras
@@ -94,6 +95,89 @@ const formTitle = document.getElementById('form-title');
 const submitBtn = document.getElementById('submit-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 
+const modelsContainer = document.getElementById('models-container');
+const btnAddModel = document.getElementById('btn-add-model');
+
+if (btnAddModel) btnAddModel.addEventListener('click', () => addModelBlock());
+
+// Função estabilizadora para não quebrar produtos já cadastrados antigos
+function getNormalizedModels(product) {
+  if (product.models && product.models.length > 0 && typeof product.models[0] === 'object') return product.models;
+  const mName = (product.models && product.models.length > 0 && typeof product.models[0] === 'string') ? product.models[0] : (product.model || 'Padrão');
+  const fakeModel = { name: mName, colors: [] };
+  const colorsToUse = (product.colors && product.colors.length > 0) ? product.colors : [{name: 'Única', hex: '#000000', image: product.image, price: product.price, stock: product.stock}];
+  const storagesToUse = (product.storages && product.storages.length > 0) ? product.storages : [];
+  colorsToUse.forEach(c => {
+    let finalStorages = storagesToUse.map(s => ({ size: s.size, price: s.price, stock: c.stock !== undefined ? c.stock : product.stock }));
+    if (finalStorages.length === 0) finalStorages = [{ size: 'Único', price: c.price !== undefined ? c.price : product.price, stock: c.stock !== undefined ? c.stock : product.stock }];
+    fakeModel.colors.push({ name: c.name, hex: c.hex || '#000000', image: c.image || product.image, storages: finalStorages });
+  });
+  return [fakeModel];
+}
+
+function addModelBlock(model = {}) {
+  const modelDiv = document.createElement('div');
+  modelDiv.className = 'model-block';
+  modelDiv.style.cssText = "border: 1px solid rgba(17,17,20,0.12); padding: 1rem; border-radius: 0.5rem; background: #fafafa;";
+  modelDiv.innerHTML = `
+    <div style="display: flex; gap: 0.5rem; align-items: end; margin-bottom: 1rem;">
+      <label style="flex:1; margin:0; font-size:0.85rem; font-weight:600;">Nome do Modelo <input type="text" class="model-name" value="${model.name || ''}" required placeholder="Ex: iPhone 15 Pro" style="width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.4rem;"></label>
+      <button type="button" class="btn-secondary" onclick="this.parentElement.parentElement.remove()" style="padding: 0.5rem 0.8rem; color: #c92a2a;">Excluir Modelo</button>
+    </div>
+    <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #e5e5ea;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <span style="font-size: 0.9rem; font-weight: 600;">Cores deste modelo</span>
+        <button type="button" class="btn-secondary btn-add-color-to-model" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">+ Adicionar Cor</button>
+      </div>
+      <div class="colors-container" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+    </div>
+  `;
+  const colorsContainer = modelDiv.querySelector('.colors-container');
+  modelDiv.querySelector('.btn-add-color-to-model').addEventListener('click', () => addColorBlock(colorsContainer));
+  if (model.colors && model.colors.length > 0) model.colors.forEach(c => addColorBlock(colorsContainer, c));
+  else addColorBlock(colorsContainer);
+  if (modelsContainer) modelsContainer.appendChild(modelDiv);
+}
+
+function addColorBlock(container, color = {}) {
+  const colorDiv = document.createElement('div');
+  colorDiv.className = 'color-block';
+  colorDiv.style.cssText = "border: 1px solid rgba(17,17,20,0.08); padding: 1rem; border-radius: 0.5rem; background: #fff;";
+  colorDiv.innerHTML = `
+    <div style="display: flex; gap: 0.5rem; align-items: end; margin-bottom: 1rem; flex-wrap: wrap;">
+      <label style="flex:1; margin:0; font-size:0.85rem;">Nome da Cor <input type="text" class="color-name" value="${color.name || ''}" required style="width: 100%; padding: 0.4rem; margin-top: 0.2rem; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.4rem;"></label>
+      <label style="width: 50px; margin:0; font-size:0.85rem;">Tom <input type="color" class="color-hex" value="${color.hex || '#000000'}" required style="width: 100%; height: 34px; padding: 0; margin-top: 0.2rem; border: none; border-radius: 0.4rem; cursor: pointer; background: transparent;"></label>
+      <label style="flex:2; margin:0; font-size:0.85rem;">Link da Imagem <input type="url" class="color-image" value="${color.image || ''}" required placeholder="URL da foto" style="width: 100%; padding: 0.4rem; margin-top: 0.2rem; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.4rem;"></label>
+      <button type="button" class="btn-secondary" onclick="this.parentElement.parentElement.remove()" style="padding: 0.4rem 0.8rem; color: #c92a2a;">Remover Cor</button>
+    </div>
+    <div style="margin-left: 1rem; padding-left: 1rem; border-left: 2px solid #e5e5ea;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <span style="font-size: 0.85rem; font-weight: 500;">Armazenamentos e Preços</span>
+        <button type="button" class="btn-secondary btn-add-storage-to-color" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">+ Add Armazenamento</button>
+      </div>
+      <div class="storages-container" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+    </div>
+  `;
+  const storagesContainer = colorDiv.querySelector('.storages-container');
+  colorDiv.querySelector('.btn-add-storage-to-color').addEventListener('click', () => addStorageBlock(storagesContainer));
+  if (color.storages && color.storages.length > 0) color.storages.forEach(s => addStorageBlock(storagesContainer, s));
+  else addStorageBlock(storagesContainer);
+  container.appendChild(colorDiv);
+}
+
+function addStorageBlock(container, storage = {}) {
+  const storageDiv = document.createElement('div');
+  storageDiv.className = 'storage-block';
+  storageDiv.style.cssText = "display: flex; gap: 0.5rem; align-items: end;";
+  storageDiv.innerHTML = `
+    <label style="flex:1; margin:0; font-size:0.8rem;">Capacidade <input type="text" class="storage-size" value="${storage.size || ''}" required placeholder="Ex: 128GB" style="width: 100%; padding: 0.4rem; margin-top: 0.2rem; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.4rem;"></label>
+    <label style="flex:1; margin:0; font-size:0.8rem;">Preço (R$) <input type="number" step="0.01" class="storage-price" value="${storage.price !== undefined ? storage.price : ''}" required style="width: 100%; padding: 0.4rem; margin-top: 0.2rem; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.4rem;"></label>
+    <label style="flex:1; margin:0; font-size:0.8rem;">Estoque <input type="number" class="storage-stock" value="${storage.stock !== undefined ? storage.stock : ''}" required style="width: 100%; padding: 0.4rem; margin-top: 0.2rem; border: 1px solid rgba(17,17,20,0.12); border-radius: 0.4rem;"></label>
+    <button type="button" class="btn-secondary" onclick="this.parentElement.remove()" style="padding: 0.4rem 0.6rem; color: #c92a2a; margin-bottom: 2px;">X</button>
+  `;
+  container.appendChild(storageDiv);
+}
+
 // Função para renderizar a tabela na tela com o status do estoque
 function renderInventory() {
   inventoryTableBody.innerHTML = '';
@@ -105,18 +189,17 @@ function renderInventory() {
     const stockStatus = item.stock > 0 
       ? `<span class="stock-badge stock-in">${item.stock} em estoque</span>`
       : `<span class="stock-badge stock-out">Esgotado</span>`;
+      
+    const normModels = getNormalizedModels(item);
+    const modelsList = normModels.map(m => m.name).join(', ');
 
     tr.innerHTML = `
-      <td>${item.name}</td>
+      <td>${item.name} ${modelsList ? `<br><small style="color:#6e6e73">${modelsList}</small>` : ''}</td>
       <td>R$ ${item.price.toFixed(2).replace('.', ',')}</td>
       <td>${stockStatus}</td>
       <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="updateStock(${item.id}, 1)">+1</button>
-        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="updateStock(${item.id}, -1)">-1</button>
-        <div style="display: flex; gap: 0.5rem;">
-          <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="editProduct(${item.id})">Editar</button>
-          <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: #c92a2a;" onclick="deleteProduct(${item.id})">Excluir</button>
-        </div>
+        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="editProduct(${item.id})">Editar</button>
+        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: #c92a2a;" onclick="deleteProduct(${item.id})">Excluir</button>
       </td>
     `;
     inventoryTableBody.appendChild(tr);
@@ -140,10 +223,11 @@ window.editProduct = function(id) {
   if (product) {
     editingProductId = id;
     document.getElementById('prod-name').value = product.name;
-    document.getElementById('prod-price').value = product.price;
-    document.getElementById('prod-stock').value = product.stock;
-    document.getElementById('prod-image').value = product.image || '';
     
+    if (modelsContainer) modelsContainer.innerHTML = '';
+    const normModels = getNormalizedModels(product);
+    normModels.forEach(m => addModelBlock(m));
+
     if(formTitle) formTitle.innerText = 'Editar Produto';
     if(submitBtn) submitBtn.innerText = 'Atualizar Produto';
     if(cancelEditBtn) cancelEditBtn.style.display = 'inline-flex';
@@ -160,6 +244,10 @@ function resetFormState() {
   if(formTitle) formTitle.innerText = 'Adicionar Novo Produto';
   if(submitBtn) submitBtn.innerText = 'Salvar Produto';
   if(cancelEditBtn) cancelEditBtn.style.display = 'none';
+  if(modelsContainer) {
+    modelsContainer.innerHTML = '';
+    addModelBlock(); 
+  }
 }
 
 // Função para excluir um produto
@@ -181,22 +269,58 @@ if (addProductForm) {
   addProductForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
+    const parsedModels = Array.from(document.querySelectorAll('.model-block')).map(modelBlock => {
+      return {
+        name: modelBlock.querySelector('.model-name').value,
+        colors: Array.from(modelBlock.querySelectorAll('.color-block')).map(colorBlock => {
+          return {
+            name: colorBlock.querySelector('.color-name').value,
+            hex: colorBlock.querySelector('.color-hex').value,
+            image: colorBlock.querySelector('.color-image').value,
+            storages: Array.from(colorBlock.querySelectorAll('.storage-block')).map(storageBlock => ({
+              size: storageBlock.querySelector('.storage-size').value,
+              price: parseFloat(storageBlock.querySelector('.storage-price').value) || 0,
+              stock: parseInt(storageBlock.querySelector('.storage-stock').value) || 0
+            }))
+          };
+        })
+      };
+    });
+
+    if (parsedModels.length === 0) {
+      alert('É obrigatório adicionar pelo menos um modelo com cor e armazenamento.');
+      return;
+    }
+
+    let totalStock = 0;
+    let basePrice = 0;
+    let baseImage = '';
+    if (parsedModels[0] && parsedModels[0].colors[0]) {
+      baseImage = parsedModels[0].colors[0].image;
+      if (parsedModels[0].colors[0].storages[0]) {
+        basePrice = parsedModels[0].colors[0].storages[0].price;
+      }
+    }
+    parsedModels.forEach(m => m.colors.forEach(c => c.storages.forEach(s => totalStock += s.stock)));
+
     if (editingProductId) {
       const product = inventory.find(p => p.id === editingProductId);
       if (product) {
         product.name = document.getElementById('prod-name').value;
-        product.price = parseFloat(document.getElementById('prod-price').value);
-        product.stock = parseInt(document.getElementById('prod-stock').value);
-        product.image = document.getElementById('prod-image').value || '';
+        product.models = parsedModels;
+        product.price = basePrice;
+        product.stock = totalStock;
+        product.image = baseImage;
         alert('Produto atualizado com sucesso!');
       }
     } else {
       const newProduct = {
         id: inventory.length > 0 ? Math.max(...inventory.map(p => p.id)) + 1 : 1,
         name: document.getElementById('prod-name').value,
-        price: parseFloat(document.getElementById('prod-price').value),
-        stock: parseInt(document.getElementById('prod-stock').value),
-        image: document.getElementById('prod-image').value || ''
+        models: parsedModels,
+        price: basePrice,
+        stock: totalStock,
+        image: baseImage
       };
       inventory.push(newProduct);
       alert('Produto adicionado ao estoque com sucesso!');
@@ -253,6 +377,12 @@ const saleModal = document.getElementById('sale-modal');
 const closeSaleModal = document.getElementById('close-sale-modal');
 const saleForm = document.getElementById('sale-form');
 const saleProductId = document.getElementById('sale-product-id');
+const saleModelWrapper = document.getElementById('sale-model-wrapper');
+const saleModel = document.getElementById('sale-model');
+const saleColorWrapper = document.getElementById('sale-color-wrapper');
+const saleColor = document.getElementById('sale-color');
+const saleStorageWrapper = document.getElementById('sale-storage-wrapper');
+const saleStorage = document.getElementById('sale-storage');
 
 // Abrir modal de venda e carregar produtos em estoque
 if (btnNewSale) {
@@ -260,13 +390,66 @@ if (btnNewSale) {
     saleProductId.innerHTML = '<option value="">-- Selecione o produto --</option>';
     inventory.forEach(item => {
       if (item.stock > 0) {
-        saleProductId.innerHTML += `<option value="${item.id}">${item.name} - R$ ${item.price.toFixed(2).replace('.',',')}</option>`;
+        saleProductId.innerHTML += `<option value="${item.id}">${item.name}</option>`;
       }
     });
+    saleModelWrapper.style.display = 'none';
+    saleColorWrapper.style.display = 'none';
+    saleStorageWrapper.style.display = 'none';
+    saleModel.removeAttribute('required');
+    saleColor.removeAttribute('required');
+    saleStorage.removeAttribute('required');
     saleModal.style.display = 'flex';
   });
 }
 if (closeSaleModal) closeSaleModal.addEventListener('click', () => saleModal.style.display = 'none');
+
+// Lógica em cascata para os seletores
+if (saleProductId) {
+  saleProductId.addEventListener('change', (e) => {
+    const product = inventory.find(p => p.id === parseInt(e.target.value));
+    saleColorWrapper.style.display = 'none';
+    saleStorageWrapper.style.display = 'none';
+    saleColor.removeAttribute('required');
+    saleStorage.removeAttribute('required');
+    if (product) {
+      const normModels = getNormalizedModels(product);
+      saleModel.innerHTML = '<option value="">-- Selecione o modelo --</option>';
+      normModels.forEach((m, i) => saleModel.innerHTML += `<option value="${i}">${m.name}</option>`);
+      saleModelWrapper.style.display = 'block';
+      saleModel.setAttribute('required', 'true');
+    } else {
+      saleModelWrapper.style.display = 'none';
+      saleModel.removeAttribute('required');
+    }
+  });
+}
+if (saleModel) {
+  saleModel.addEventListener('change', (e) => {
+    const product = inventory.find(p => p.id === parseInt(saleProductId.value));
+    saleStorageWrapper.style.display = 'none';
+    saleStorage.removeAttribute('required');
+    if (product && e.target.value !== '') {
+      const m = getNormalizedModels(product)[parseInt(e.target.value)];
+      saleColor.innerHTML = '<option value="">-- Selecione a cor --</option>';
+      m.colors.forEach((c, i) => saleColor.innerHTML += `<option value="${i}">${c.name}</option>`);
+      saleColorWrapper.style.display = 'block';
+      saleColor.setAttribute('required', 'true');
+    } else { saleColorWrapper.style.display = 'none'; saleColor.removeAttribute('required'); }
+  });
+}
+if (saleColor) {
+  saleColor.addEventListener('change', (e) => {
+    const product = inventory.find(p => p.id === parseInt(saleProductId.value));
+    if (product && saleModel.value !== '' && e.target.value !== '') {
+      const c = getNormalizedModels(product)[parseInt(saleModel.value)].colors[parseInt(e.target.value)];
+      saleStorage.innerHTML = '<option value="">-- Selecione o armazenamento --</option>';
+      c.storages.forEach((s, i) => saleStorage.innerHTML += `<option value="${i}" ${s.stock <= 0 ? 'disabled' : ''}>${s.size} - R$ ${s.price.toFixed(2).replace('.', ',')} (${s.stock > 0 ? s.stock + ' em estoque' : 'Esgotado'})</option>`);
+      saleStorageWrapper.style.display = 'block';
+      saleStorage.setAttribute('required', 'true');
+    } else { saleStorageWrapper.style.display = 'none'; saleStorage.removeAttribute('required'); }
+  });
+}
 
 // Confirmar Venda
 if (saleForm) {
@@ -275,14 +458,35 @@ if (saleForm) {
     const product = inventory.find(p => p.id === parseInt(saleProductId.value));
 
     if (product && product.stock > 0) {
-      product.stock--; // Subtrai do estoque
+      const normModels = getNormalizedModels(product);
+      const m = normModels[parseInt(saleModel.value)];
+      const c = m ? m.colors[parseInt(saleColor.value)] : null;
+      const s = c ? c.storages[parseInt(saleStorage.value)] : null;
+
+      if (!m || !c || !s) {
+        alert("Por favor, selecione todas as variações.");
+        return;
+      }
+      if (s.stock <= 0) {
+        alert("Esta variação está esgotada!");
+        return;
+      }
+
+      s.stock--;
+      product.models = normModels;
+      product.stock = Math.max(0, product.stock - 1);
 
       const now = new Date();
+      let saleName = product.name;
+      if (m.name !== 'Padrão') saleName += ` ${m.name}`;
+      if (c.name !== 'Única') saleName += ` - ${c.name}`;
+      if (s.size !== 'Único') saleName += ` (${s.size})`;
+
       const newSale = {
         id: Date.now(),
         productId: product.id,
-        productName: product.name,
-        price: product.price,
+        productName: saleName,
+        price: s.price,
         date: now.toLocaleDateString('pt-BR'),
         time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         timestamp: now.getTime()
