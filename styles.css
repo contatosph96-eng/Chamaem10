@@ -32,8 +32,7 @@ textarea {
   top: 0;
   z-index: 10;
   backdrop-filter: blur(16px);
-  background: rgba(245, 245, 247, 0.86);
-  border-bottom: 1px solid rgba(17, 17, 20, 0.08);
+  background: linear-gradient(180deg,  #e63d00 0%, #ffffffa9 100%);
 }
 
 .header-content {
@@ -75,7 +74,7 @@ textarea {
 }
 
 .btn-primary {
-  background: #111114;
+  background: #ff4500;
   color: #ffffff;
 }
 
@@ -84,7 +83,11 @@ textarea {
   color: #111114;
 }
 
-.btn-primary:hover,
+.btn-primary:hover {
+  background: #e63e00;
+  transform: translateY(-1px);
+}
+
 .btn-secondary:hover {
   transform: translateY(-1px);
 }
@@ -107,7 +110,8 @@ textarea {
   text-transform: uppercase;
   letter-spacing: 0.22em;
   font-size: 0.78rem;
-  color: #6e6e73;
+  color: #ff4500;
+  font-weight: 700;
   margin-bottom: 1rem;
 }
 
@@ -136,18 +140,17 @@ textarea {
 }
 
 .device-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f5f5f7 100%);
-  border: 1px solid rgba(17, 17, 20, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #e63d00cb 100%);
   border-radius: 2rem;
-  box-shadow: 0 30px 70px rgba(17, 17, 20, 0.08);
   padding: 2.4rem;
   min-height: 340px;
+  color: #000000;
 }
 
 .device-card span {
   display: inline-flex;
   margin-bottom: 1rem;
-  color: #6e6e73;
+  color: rgba(0, 0, 0, 0.85);
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.18em;
@@ -272,14 +275,14 @@ textarea {
 
 .device-card p {
   margin: 1.2rem 0 0;
-  color: #4b4b51;
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.75;
 }
 
 .device-card .price {
   margin-top: 2.4rem;
   font-size: 1rem;
-  color: #111114;
+  color: #ffffff;
 }
 
 .products-section,
@@ -475,6 +478,8 @@ textarea {
   padding: 2.5rem;
   width: 100%;
   max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12);
 }
@@ -499,6 +504,46 @@ textarea {
   font-weight: 500;
 }
 
+/* --- Caixas de Seleção (Modelos e Armazenamento) --- */
+.option-box {
+  padding: 0.8rem 1.2rem;
+  border: 1px solid rgba(17,17,20,0.12);
+  border-radius: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  background: #fff;
+}
+.option-box.active {
+  border-color: #ff4500;
+  box-shadow: 0 0 0 1px #ff4500;
+  background: #fff5f0;
+}
+
+/* --- Color Swatches (Apple Style) --- */
+.color-swatches {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1) inset;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.color-swatch.active {
+  outline: 2px solid #ff4500;
+  outline-offset: 3px;
+}
+
+/* --- Estilos do Rodapé --- */
 .site-footer {
   padding: 2.25rem 24px 3rem;
   text-align: center;
