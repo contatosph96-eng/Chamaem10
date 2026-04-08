@@ -2,6 +2,8 @@
 const CLOUD_BIN_ID = 'SEU_BIN_ID_AQUI'; // Cole o seu Bin ID aqui
 const CLOUD_API_KEY = 'SUA_API_KEY_AQUI'; // Cole a sua API Key aqui
 
+const API_URL = "https://NeguePython.pythonanywhere.com";
+
 async function loadCloudData() {
   try {
     const response = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest`, {
