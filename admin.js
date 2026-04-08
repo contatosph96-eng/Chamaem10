@@ -427,5 +427,17 @@ if (logoutBtn) {
   });
 }
 
+// Lógica do Botão de Salvar Manualmente
+const forceSaveBtn = document.getElementById('force-save-btn');
+if (forceSaveBtn) {
+  forceSaveBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    forceSaveBtn.innerText = 'Salvando...';
+    await saveCloudData();
+    forceSaveBtn.innerText = 'Salvar Dados';
+    alert('Tudo certo! Seus dados foram salvos e sincronizados com a nuvem com sucesso.');
+  });
+}
+
 // Inicializa o painel carregando os dados da nuvem
 initAdminApp();
