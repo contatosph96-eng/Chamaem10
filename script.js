@@ -1,19 +1,14 @@
-// --- CONFIGURAÇÃO DO BANCO DE DADOS (JSONBin.io) ---
-const CLOUD_BIN_ID = 'SEU_BIN_ID_AQUI'; // Cole o seu Bin ID aqui
-const CLOUD_API_KEY = 'SUA_API_KEY_AQUI'; // Cole a sua API Key aqui
-
+// --- CONFIGURAÇÃO DO BANCO DE DADOS (Python API) ---
 const API_URL = "https://NeguePython.pythonanywhere.com";
+const STORE_ID = "chamaem10"; // Identificador fixo para sua loja
 
 async function loadCloudData() {
   try {
-    const response = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest`, {
-      headers: { 'X-Master-Key': CLOUD_API_KEY }
-    });
-    if (!response.ok) throw new Error('Erro ao carregar dados da nuvem');
-    const json = await response.json();
-    return json.record;
+    const response = await fetch(`${API_URL}/load/${STORE_ID}`);
+    if (!response.ok) throw new Error('Erro ao carregar dados da API');
+    return await response.json();
   } catch (error) {
-    console.error('⚠️ Falha ao conectar no JSONBin. Verifique suas chaves. Usando dados locais do dispositivo:', error);
+    console.error('⚠️ Falha ao conectar na API. Usando dados locais do dispositivo:', error);
     return {
       inventory: JSON.parse(localStorage.getItem('chamaInventory')) || null,
       requests: JSON.parse(localStorage.getItem('chamaRequests')) || []
@@ -23,15 +18,15 @@ async function loadCloudData() {
 
 async function saveCloudData(data) {
   try {
-    await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CLOUD_API_KEY },
+    await fetch(`${API_URL}/save/${STORE_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    console.log("Dados sincronizados com NeguePython!");
   } catch (error) {
-    console.error('Erro ao salvar na nuvem', error);
+    console.error('Erro ao salvar na API:', error);
   }
-  localStorage.setItem('chamaRequests', JSON.stringify(data.requests || []));
 }
 
 const form = document.getElementById('budget-form');
