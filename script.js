@@ -1,5 +1,5 @@
 // --- CONFIGURAÇÃO DO BANCO DE DADOS (Python API) ---
-const API_URL = "https://NeguePython.pythonanywhere.com";
+const API_URL = "https://neguepython.pythonanywhere.com";
 const STORE_ID = "chamaem10"; // Identificador fixo para sua loja
 
 async function loadCloudData() {
