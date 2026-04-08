@@ -8,10 +8,10 @@ async function loadCloudData() {
     if (!response.ok) throw new Error('Erro ao carregar dados da API');
     return await response.json();
   } catch (error) {
-    console.error('⚠️ Falha ao conectar na API. Usando dados locais do dispositivo:', error);
+    console.error('⚠️ Falha ao conectar na API:', error);
     return {
-      inventory: JSON.parse(localStorage.getItem('chamaInventory')) || null,
-      requests: JSON.parse(localStorage.getItem('chamaRequests')) || []
+      inventory: null,
+      requests: []
     };
   }
 }
